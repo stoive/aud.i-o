@@ -10,6 +10,7 @@
 			};
 		</script>
 		<script src="device.js"></script>
+		<script src="codec/codec.js"></script>
 		<style>
 			#out {
 				width: 30px;
@@ -31,6 +32,7 @@
 			}
 		</style>
 	</head>
+	<canvas id="cnvs" width="1500" height="200" style="float: left; border: 1px solid black;"></canvas>
 	<div id="out"></div>
 	<div id="stats">
 		<div>
@@ -60,6 +62,21 @@
 
 				document.getElementById('out').style.height = Math.floor(maxVol*600).toString() + "px";
 				document.getElementById('out').style["background-color"] = "rgb(" + red.toString() + ",0," + blue.toString() + ")";
+				
+				// Draw waveform
+				var canvas = document.getElementById('cnvs');
+				var ctx = canvas.getContext('2d');
+				ctx.fillColor = "#aaaaaa";
+				ctx.strokeColor = "#ffffff";
+				ctx.clearRect(0,0, canvas.width, canvas.height);
+				ctx.beginPath();
+				ctx.moveTo(0,100);
+				event.inputBuffer.getChannelData(0).forEach(function(curr, i) {
+					var y = Math.floor(curr * 100) + 100;
+					ctx.lineTo(i, y);
+					ctx.moveTo(i, y);
+				});
+				ctx.stroke();
 			};
 			setInterval(function() {
 				document.getElementById('sampleRate').innerText = (samples / 3).toString() + "hz";
