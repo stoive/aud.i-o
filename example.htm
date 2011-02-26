@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Embed Tester</title>
+		<script>
+			function newData(data) {
+				var pre = document.createElement('pre');
+				pre.innerText = data.toString();
+				document.appendChild(pre);
+			};
+		</script>
+		<script src="device.js"></script>
+		<style>
+			#out {
+				width: 30px;
+				border: 2px solid black;
+				float: left;
+				-webkit-transition-property: height, background-color;
+				-webkit-transition-duration: 0.1s, 0.1s;
+			}
+			#stats {
+				margin: 10px;
+				padding: 5px;
+				width: 300px;
+				border: 1px solid green;
+				float: left;
+			}
+			#stats label {
+				display: top;
+				margin-top: 5px;
+			}
+		</style>
+	</head>
+	<div id="out"></div>
+	<div id="stats">
+		<div>
+			<label>Sample Rate:</label>
+			<span id="sampleRate"></span>
+		</div>
+		<div>
+			<label>Buffer Writes:</label>
+			<span id="bufferRate"></span>
+		</div>
+		<div>
+			<label>Avg Buffer Size:</label>
+			<span id="bufferSize"></span>
+		</div>
+	</div>
+	<script>
+		var samples = 0;
+		var buffers = 0;
+		var ac = new AudioContext(function() {
+			var node = ac.createAudioInputSourceNode();
+			node.onaudioprocess = function(event) {
+				samples += event.inputBuffer.getChannelData(0).length;
+				buffers++;
+				var maxVol = Math.max.apply(Math, event.inputBuffer.getChannelData(0));
+				var red = Math.floor(255 * maxVol);
+				var blue = 255 - red;
+
+				document.getElementById('out').style.height = Math.floor(maxVol*600).toString() + "px";
+				document.getElementById('out').style["background-color"] = "rgb(" + red.toString() + ",0," + blue.toString() + ")";
+			};
+			setInterval(function() {
+				document.getElementById('sampleRate').innerText = (samples / 3).toString() + "hz";
+				document.getElementById('bufferRate').innerText = (buffers / 3).toString() + "/sec";
+				document.getElementById('bufferSize').innerText = ((samples / buffers) * 4).toString() + " bytes";
+				samples = 0;
+				buffers = 0;
+			}, 3000);
+		})
+	</script>
+	</body>
+</html>
+
+<!-- 0401 552 656 -->
