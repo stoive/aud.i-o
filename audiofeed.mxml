@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="*" layout="vertical" creationComplete = "init()">
+	<mx:Script><![CDATA[
+        import mx.controls.Alert;
+		import flash.events.Event;
+		import flash.events.SampleDataEvent;
+		import flash.media.Microphone;
+		import flash.media.Sound;
+		import flash.media.SoundMixer;
+		import flash.utils.ByteArray;
+		import flash.external.ExternalInterface;
+		
+		var mics:Array = new Array(Microphone.names.length);
+
+		function init():void {
+			
+			ExternalInterface.addCallback("getMicrophones", function():Array {
+				return Microphone.names;
+			});
+			ExternalInterface.addCallback("getFeed", function(callbackName:String, micIndex:Number = -1):void {
+				var mic:Microphone = Microphone.getMicrophone(micIndex);
+				mic.setLoopBack(false);
+				mic.rate = 44;
+				mic.gain = 60;
+				
+				mic.addEventListener(SampleDataEvent.SAMPLE_DATA, function(event:SampleDataEvent):void {
+					var vals:Array = new Array();
+					for (var i:int = 0; i < 8192 && event.data.bytesAvailable > 0; i++) {
+						var sample:Number = event.data.readFloat();
+						vals.push(sample);
+					}
+					ExternalInterface.call(callbackName, vals);
+				});
+			});
+			
+			ExternalInterface.call("flAudioLoaded");
+		}
+	]]></mx:Script>
+</mx:Application>
