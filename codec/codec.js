@@ -42,7 +42,7 @@ function encodeNth(input, order, seeds) {
 };
 
 function decodeNth(dataFrame, order) {
-	var output = [];
+	var output = new Float32Array(dataFrame.samples.length);
 	dataFrame.samples.map(
 		function(curr,i,input) { 
 			return (output[i] = nthOrderPrediction(i, output, order, dataFrame.seeds) + curr); 
@@ -55,7 +55,7 @@ function quantizeLin(dataFrame, bits) {
 	bits = bits || 4;
 	var err = 0;
 	//dataFrame.range = 0.125;
-	dataFrame.range = Math.max.apply(Math, dataFrame.samples);
+	dataFrame.range = Math.max.apply(Math, dataFrame.samples.toArray());
 	var steps = Math.pow(bits, 2) / 2;
 	var stepSize = dataFrame.range / steps;
 	dataFrame.samples = dataFrame.samples.map(function(curr, i, out) {
