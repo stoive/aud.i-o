@@ -51,23 +51,25 @@ function decodeNth(dataFrame, order) {
 };
 
 // linear adaptive quantization
-function quantizeLin(dataFrame, steps) {
-	steps = steps || 4;
+function quantizeLin(dataFrame, bits) {
+	bits = bits || 4;
 	var err = 0;
 	//dataFrame.range = 0.125;
 	dataFrame.range = Math.max.apply(Math, dataFrame.samples);
-	var step = dataFrame.range / steps;
+	var steps = Math.pow(bits, 2) / 2;
+	var stepSize = dataFrame.range / steps;
 	dataFrame.samples = dataFrame.samples.map(function(curr, i, out) {
-		var val = (curr + err) / step;
+		var val = (curr + err) / stepSize;
 		if (val >= 0) val = Math.round(val >= steps ? steps - 1 : val);
 		else val = Math.round(val < -steps ? -steps : val);
 
-		err = curr + err - val * step;
+		err = curr + err - val * stepSize;
 		return val;
 	});
 }
 
-function unQuantizeLin(dataFrame, steps) {
+function unQuantizeLin(dataFrame, bits) {
+	var steps = Math.pow(bits, 2) / 2;
 	var stepSize = dataFrame.range / steps;
 	dataFrame.samples = dataFrame.samples.map(function(curr, i, out) {
 		return curr * stepSize;

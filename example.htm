@@ -36,26 +36,8 @@
 		<canvas id="full" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
 		<canvas id="compressed" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
 		<canvas id="delta" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
-	</div><!--
-	<div id="out"></div>
-	<div id="stats">
-		<div>
-			<label>Sample Rate:</label>
-			<span id="sampleRate"></span>
-		</div>
-		<div>
-			<label>Buffer Writes:</label>
-			<span id="bufferRate"></span>
-		</div>
-		<div>
-			<label>Avg Buffer Size:</label>
-			<span id="bufferSize"></span>
-		</div>
-	</div>-->
+	</div>
 	<script>
-		var samples = 0;
-		var buffers = 0;
-		var lastSample = [];
 		
 		function drawWaveForm(canvas, samples) {
 			var ctx = canvas.getContext('2d');
@@ -74,16 +56,9 @@
 		
 		function applyCompression(samples, seeds) {
 			var dataFrame = encodeNth(samples, 1, seeds);
-			quantizeLin(dataFrame, 2);
-			unQuantizeLin(dataFrame, 2)
+			quantizeLin(dataFrame, 3);
+			unQuantizeLin(dataFrame, 3)
 			return decodeNth(dataFrame, 1);
-			/*return decodeNth(
-				unQuantizeLin(
-					quantizeLin(
-						encodeNth(samples, 1, seeds),
-						8, 0.125/2),
-					8, 0.125/2),
-				1);*/
 		}
 
 		function drawAllSamples(samples, seeds) {
@@ -102,17 +77,6 @@
 			var node = ac.createAudioInputSourceNode();
 			var seeds = [0];
 			node.onaudioprocess = function(event) {
-				lastSample = event.inputBuffer.getChannelData(0);
-				
-				//samples += event.inputBuffer.getChannelData(0).length;
-				//buffers++;
-				//var maxVol = Math.max.apply(Math, event.inputBuffer.getChannelData(0));
-				//var red = Math.floor(255 * maxVol);
-				//var blue = 255 - red;
-
-				//document.getElementById('out').style.height = Math.floor(maxVol*600).toString() + "px";
-				//document.getElementById('out').style["background-color"] = "rgb(" + red.toString() + ",0," + blue.toString() + ")";
-				
 				// Draw waveform
 				var buf = event.inputBuffer.getChannelData(0);
 				while (buf.length > 0) {
@@ -124,13 +88,6 @@
 					seeds = sub.slice(sub.length - 1);
 				}
 			};
-			/*setInterval(function() {
-				document.getElementById('sampleRate').innerText = (samples / 3).toString() + "hz";
-				document.getElementById('bufferRate').innerText = (buffers / 3).toString() + "/sec";
-				document.getElementById('bufferSize').innerText = ((samples / buffers) * 4).toString() + " bytes";
-				samples = 0;
-				buffers = 0;
-			}, 3000);*/
 		})
 	</script>
 	</body>
