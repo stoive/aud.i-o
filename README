@@ -3,3 +3,5 @@ aud.i-o attempts to bring streaming audio input devices to JavaScript in a fashi
 Currently in an embryonic stage - I don't have a browser with working a Web Audio implementation, so integration is not attempted. Furthermore, the API is far from clean, and overall is more of a 'spike' to prove the concept.
 
 In short, don't use this just yet. :p
+
+Alongside the main focus of development - aud.i-o.js - is an example page which renders waveforms, and performs predictive/quantizing/lossy audio compression/decompression. This is just a demo, and might eventually be split off into another project, if browser audio APIs don't end up providing an audio compression output node for sending data over the network.
