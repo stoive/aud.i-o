@@ -1,4 +1,4 @@
-aud.i-o attempts to bring streaming audio input to JavaScript in a fashion compatible with the Web Audio API [ http://chromium.googlecode.com/svn/trunk/samples/audio/specification/specification.html ].
+aud.i-o attempts to bring streaming audio input devices to JavaScript in a fashion compatible with the Web Audio API [ http://chromium.googlecode.com/svn/trunk/samples/audio/specification/specification.html ]. If/When streaming audio I/O is standardised, this will behave as a polyfill to bring functionality to non-supporting browsers (via the currently-used Flash fallback, perhaps Java or Silverlight). 
 
 Currently in an embryonic stage - I don't have a browser with working a Web Audio implementation, so integration is not attempted. Furthermore, the API is far from clean, and overall is more of a 'spike' to prove the concept.
 
