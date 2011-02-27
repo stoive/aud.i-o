@@ -32,7 +32,11 @@
 			}
 		</style>
 	</head>
-	<canvas id="cnvs" width="1500" height="200" style="float: left; border: 1px solid black;"></canvas>
+	<div style="margin: 10px;">
+		<canvas id="full" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
+		<canvas id="compressed" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
+		<canvas id="delta" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
+	</div><!--
 	<div id="out"></div>
 	<div id="stats">
 		<div>
@@ -47,44 +51,86 @@
 			<label>Avg Buffer Size:</label>
 			<span id="bufferSize"></span>
 		</div>
-	</div>
+	</div>-->
 	<script>
 		var samples = 0;
 		var buffers = 0;
+		var lastSample = [];
+		
+		function drawWaveForm(canvas, samples) {
+			var ctx = canvas.getContext('2d');
+			ctx.fillColor = "#aaaaaa";
+			ctx.strokeColor = "#ffffff";
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			ctx.beginPath();
+			ctx.moveTo(0,canvas.height/2);
+			samples.forEach(function(curr, i) {
+				var y = Math.floor(curr * canvas.height / 2) + canvas.height / 2;
+				ctx.lineTo(i, y);
+				ctx.moveTo(i, y);
+			});
+			ctx.stroke();
+		}
+		
+		function applyCompression(samples, seeds) {
+			var dataFrame = encodeNth(samples, 1, seeds);
+			quantizeLin(dataFrame, 2);
+			unQuantizeLin(dataFrame, 2)
+			return decodeNth(dataFrame, 1);
+			/*return decodeNth(
+				unQuantizeLin(
+					quantizeLin(
+						encodeNth(samples, 1, seeds),
+						8, 0.125/2),
+					8, 0.125/2),
+				1);*/
+		}
+
+		function drawAllSamples(samples, seeds) {
+			drawWaveForm(document.getElementById('full'), samples);
+			var uncompressed = applyCompression(samples, seeds);
+			drawWaveForm(document.getElementById('compressed'), uncompressed);
+			
+			var diff = [];
+			for (var i = 0; i < uncompressed.length; i++) {
+				diff.push((samples[i] - uncompressed[i]));
+			}
+			drawWaveForm(document.getElementById('delta'), diff);
+		}
+		
 		var ac = new AudioContext(function() {
 			var node = ac.createAudioInputSourceNode();
+			var seeds = [0];
 			node.onaudioprocess = function(event) {
-				samples += event.inputBuffer.getChannelData(0).length;
-				buffers++;
-				var maxVol = Math.max.apply(Math, event.inputBuffer.getChannelData(0));
-				var red = Math.floor(255 * maxVol);
-				var blue = 255 - red;
+				lastSample = event.inputBuffer.getChannelData(0);
+				
+				//samples += event.inputBuffer.getChannelData(0).length;
+				//buffers++;
+				//var maxVol = Math.max.apply(Math, event.inputBuffer.getChannelData(0));
+				//var red = Math.floor(255 * maxVol);
+				//var blue = 255 - red;
 
-				document.getElementById('out').style.height = Math.floor(maxVol*600).toString() + "px";
-				document.getElementById('out').style["background-color"] = "rgb(" + red.toString() + ",0," + blue.toString() + ")";
+				//document.getElementById('out').style.height = Math.floor(maxVol*600).toString() + "px";
+				//document.getElementById('out').style["background-color"] = "rgb(" + red.toString() + ",0," + blue.toString() + ")";
 				
 				// Draw waveform
-				var canvas = document.getElementById('cnvs');
-				var ctx = canvas.getContext('2d');
-				ctx.fillColor = "#aaaaaa";
-				ctx.strokeColor = "#ffffff";
-				ctx.clearRect(0,0, canvas.width, canvas.height);
-				ctx.beginPath();
-				ctx.moveTo(0,100);
-				event.inputBuffer.getChannelData(0).forEach(function(curr, i) {
-					var y = Math.floor(curr * 100) + 100;
-					ctx.lineTo(i, y);
-					ctx.moveTo(i, y);
-				});
-				ctx.stroke();
+				var buf = event.inputBuffer.getChannelData(0);
+				while (buf.length > 0) {
+					var sub = buf.slice(0, 512);
+					buf = buf.slice(512);
+					drawAllSamples(sub, seeds);
+					// Seed the next buffer frame with the last N values of the current buffer
+					// where N is the order of prediction in the codec.
+					seeds = sub.slice(sub.length - 1);
+				}
 			};
-			setInterval(function() {
+			/*setInterval(function() {
 				document.getElementById('sampleRate').innerText = (samples / 3).toString() + "hz";
 				document.getElementById('bufferRate').innerText = (buffers / 3).toString() + "/sec";
 				document.getElementById('bufferSize').innerText = ((samples / buffers) * 4).toString() + " bytes";
 				samples = 0;
 				buffers = 0;
-			}, 3000);
+			}, 3000);*/
 		})
 	</script>
 	</body>
