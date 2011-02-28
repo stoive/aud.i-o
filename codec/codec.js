@@ -70,7 +70,7 @@ function quantizeLin(dataFrame, bits) {
 	bits = bits || 4;
 	var err = 0;
 	//dataFrame.range = 0.125;
-	dataFrame.range = Math.max.apply(Math, dataFrame.samples.toArray());
+	dataFrame.range = Math.max.apply(Math, Array.prototype.slice.call(dataFrame.samples));
 	var steps = Math.pow(bits, 2) / 2;
 	var stepSize = dataFrame.range / steps;
 	dataFrame.samples = dataFrame.samples.map(function(curr, i, out) {
