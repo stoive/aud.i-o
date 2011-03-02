@@ -13,6 +13,24 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 */
 
+if (!Math.sign) {
+	// Todo: compare this method with if (>0) 1; if (<0) -1; 0;
+	// Todo: consider negative and positive zero, infinity
+	Math.sign = function(x) { if (isFinite(x)) {return (x / Math.abs(x) || 0)} throw "Write your own damn Math.sign(x)."; };
+}
+
+//function(curr) {return Math.sign(curr) * Math.log(1 + Math.abs(curr));}
+function muLaw(x, bits) {
+	var mu = Math.pow(2, bits) - 1;
+	return Math.sign(x) * (Math.log(1 + mu * Math.abs(x)) / Math.log(1 + mu));
+}
+
+// function(x) {return Math.sign(x) * Math.pow(Math.E, Math.abs(x)) - Math.sign(x)}
+function inverseMuLaw(x, bits) {
+	var mu = Math.pow(2, bits) - 1;
+	return Math.sign(x) * (1 / mu) * (Math.pow(1 + mu, Math.abs(x)) - 1);
+}
+
 var DataFrame = function(samples, seeds) {
 	this.samples = samples;
 	this.seeds = seeds || [];
@@ -70,6 +88,11 @@ function quantizeLin(dataFrame, bits) {
 	bits = bits || 4;
 	var err = 0;
 	//dataFrame.range = 0.125;
+	
+	dataFrame.samples = dataFrame.samples.map(function(curr) {
+		return muLaw(curr, bits); // Math.sign(curr) * Math.log(1 + Math.abs(curr));
+	});
+	
 	dataFrame.range = Math.max.apply(Math, Array.prototype.slice.call(dataFrame.samples));
 	var steps = Math.pow(bits, 2) / 2;
 	var stepSize = dataFrame.range / steps;
@@ -85,9 +108,15 @@ function quantizeLin(dataFrame, bits) {
 
 function unQuantizeLin(dataFrame, bits) {
 	var steps = Math.pow(bits, 2) / 2;
+	
 	var stepSize = dataFrame.range / steps;
+
 	dataFrame.samples = dataFrame.samples.map(function(curr, i, out) {
 		return curr * stepSize;
+	});
+	
+	dataFrame.samples = dataFrame.samples.map(function(curr) {
+		return inverseMuLaw(curr, bits);
 	});
 }
 
