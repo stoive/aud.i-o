@@ -10,102 +10,22 @@ Redistribution and use in source and binary forms, with or without modification,
 
 * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-* Neither the name of Steven Thurlow nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+* Neither the name of aud.i-o nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 		 -->
 		<title>Embed Tester</title>
-		<script>
-			function newData(data) {
-				var pre = document.createElement('pre');
-				pre.innerText = data.toString();
-				document.appendChild(pre);
-			};
-		</script>
 		<script src="aud.i-o.js"></script>
-		<script src="codec/codec.js"></script>
 		<script src="lib/TypedArrayExtensions.js"></script>
-		<style>
-			#out {
-				width: 30px;
-				border: 2px solid black;
-				float: left;
-				-webkit-transition-property: height, background-color;
-				-webkit-transition-duration: 0.1s, 0.1s;
-			}
-			#stats {
-				margin: 10px;
-				padding: 5px;
-				width: 300px;
-				border: 1px solid green;
-				float: left;
-			}
-			#stats label {
-				display: top;
-				margin-top: 5px;
-			}
-		</style>
+		<script data-main="scripts/main" src="scripts/allplugins-require.js"></script>
 	</head>
-	<div style="margin: 10px;">
-		<canvas id="full" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
-		<canvas id="compressed" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
-		<canvas id="delta" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
-	</div>
-	<script>
-		
-		function drawWaveForm(canvas, samples) {
-			var ctx = canvas.getContext('2d');
-			ctx.fillColor = "#aaaaaa";
-			ctx.strokeColor = "#ffffff";
-			ctx.clearRect(0,0, canvas.width, canvas.height);
-			ctx.beginPath();
-			ctx.moveTo(0,canvas.height/2);
-			samples.forEach(function(curr, i) {
-				var y = Math.floor(curr * canvas.height / 2) + canvas.height / 2;
-				ctx.lineTo(i, y);
-				ctx.moveTo(i, y);
-			});
-			ctx.stroke();
-		}
-		
-		function applyCompression(samples, seeds) {
-			var dataFrame = encodeNth(samples, 1, seeds);
-			quantizeLin(dataFrame, 3);
-			unQuantizeLin(dataFrame, 3)
-			return decodeNth(dataFrame, 1);
-		}
-
-		function drawAllSamples(samples, seeds) {
-			drawWaveForm(document.getElementById('full'), samples);
-			var uncompressed = applyCompression(samples, seeds);
-			drawWaveForm(document.getElementById('compressed'), uncompressed);
-			
-			var diff = [];
-			for (var i = 0; i < uncompressed.length; i++) {
-				diff.push((samples[i] - uncompressed[i]));
-			}
-			drawWaveForm(document.getElementById('delta'), diff);
-		}
-		
-		var ac = new AudioContext(function() {
-			var node = ac.createAudioInputSourceNode();
-			var seeds = [0];
-			node.onaudioprocess = function(event) {
-				// Draw waveform
-				var buf = event.inputBuffer.getChannelData(0);
-				while (buf.length > 0) {
-					var sub = buf.slice(0, 512);
-					buf = buf.slice(512);
-					drawAllSamples(sub, seeds);
-					// Seed the next buffer frame with the last N values of the current buffer
-					// where N is the order of prediction in the codec.
-					seeds = sub.slice(sub.length - 1);
-				}
-			};
-		})
-	</script>
+	<body>
+		<div style="margin: 10px;">
+			<canvas id="full" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
+			<canvas id="compressed" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
+			<canvas id="delta" width="512" height="400" style="float: left; border: 1px solid black;"></canvas>
+		</div>
 	</body>
 </html>
 
-<!-- 0401 552 656 -->
