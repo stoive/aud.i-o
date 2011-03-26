@@ -13,20 +13,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 */
 
-if (Float32Array) {
-	if (!!(Float32Array.prototype.subarray) && !Float32Array.prototype.slice) Float32Array.prototype.slice = Float32Array.prototype.subarray;
-	if (!(Float32Array.prototype.toArray)) {
-		Float32Array.prototype.toArray = function() {
-			var arr = new Array(this.length);
-			for (var i = 0; i < this.length; i++) arr[i] = this[i];
-			return arr;
-		};
-		Array.prototype.toArray = function() { return this; };
-	}
-}
-
-
-
 if (!AudioBuffer) {
 	var AudioBuffer = function(buffers) {
 		this.buffers = buffers;
