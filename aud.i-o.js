@@ -72,7 +72,9 @@ if (!AudioContext) {
 		this.obj = document.createElement('object');
 		this.obj.id = "audioFeed";
 		this.obj.width = 300;
-		this.obj.height = 300;
+		this.obj.height = 200;
+		this.obj.style.display = 'block';
+		this.obj.style.left = '10px';
 
 		var param1 = document.createElement('param');
 		param1.setAttribute('name', 'movie');
@@ -89,10 +91,30 @@ if (!AudioContext) {
 		embed.setAttribute('name', 'audioFeed');
 		embed.setAttribute('swliveconnect', 'true');
 		embed.setAttribute('type', 'application/x-shockwave-flash');
+		
 		this.obj.appendChild(embed);
-		document.body.appendChild(this.obj);
+		
+		var div = document.createElement('div');
+		div.id = 'audioFlashPromptNotice';
+		div.style.position = 'absolute';
+		div.style.top = "-220px";
+		div.style.left = ((document.width - 320) / 2).toString() + "px";
+		div.style.border = '3px solid black';
+		div.style['background-color'] = "white";
+		div.style['border-top'] = "none";
+		div.style['border-radius'] = "0px 0px 10px 10px";
+		div.style['padding-bottom'] = "10px";
+		div.style['-webkit-transition'] = "top 1s ease-out";
+		div.appendChild(this.obj);
+
+		document.body.appendChild(div);
+		
+		setTimeout(function() {div.style.top = "0px"}, 0);
 		
 		if (callback) window["flAudioLoaded"] = callback;
+		window["flAudioPermissionSelected"] = function() {
+			div.style.top = "-220px";
+		};
 	}
 	AudioContext.prototype = {
 		inputNodes: {},

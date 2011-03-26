@@ -18,8 +18,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 	<mx:Script><![CDATA[
         import mx.controls.Alert;
-		import flash.events.Event;
-		import flash.events.SampleDataEvent;
+		import flash.events.*;
 		import flash.media.Microphone;
 		import flash.media.Sound;
 		import flash.media.SoundMixer;
@@ -29,7 +28,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 		var mics:Array = new Array(Microphone.names.length);
 
 		function init():void {
-			
 			ExternalInterface.addCallback("getMicrophones", function():Array {
 				return Microphone.names;
 			});
@@ -38,6 +36,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 				mic.setLoopBack(false);
 				mic.rate = 44;
 				mic.gain = 40;
+				mic.addEventListener(StatusEvent.STATUS, function(status:StatusEvent):void {
+					ExternalInterface.call("flAudioPermissionSelected");
+				});
 				
 				mic.addEventListener(SampleDataEvent.SAMPLE_DATA, function(event:SampleDataEvent):void {
 					var vals:Array = new Array();
