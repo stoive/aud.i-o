@@ -11,7 +11,80 @@ Redistribution and use in source and binary forms, with or without modification,
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 */
+
+window['aud.i-o'] = (function(){
+	var createAudioInputSourceNodeQueue = [];
+	var isAudioLoaded = false;
+	return {
+		createAudioInputSourceNode: function(callbackName, id) {
+			if (!isAudioLoaded) {
+				createAudioInputSourceNodeQueue.push(function(){
+					this.flashObject.getFeed(callbackName, id);
+				});
+			}
+			else
+				this.flashObject.getFeed(callbackName, id);
+		},
+		createFlashObject: function() {
+			if (this.flashObject) return;
+
+			this.flashObject = document.createElement('object');
+			this.flashObject.id = "audioFeed";
+			this.flashObject.width = 300;
+			this.flashObject.height = 200;
+			this.flashObject.style.display = 'block';
+			this.flashObject.style.left = '10px';
+
+			var param1 = document.createElement('param');
+			param1.setAttribute('name', 'movie');
+			param1.setAttribute('value', 'audiofeed.swf');
+			this.flashObject.appendChild(param1);
+
+			var param2 = document.createElement('param');
+			param2.setAttribute('name', 'allowScriptAccess');
+			param2.setAttribute('value', '*');
+			this.flashObject.appendChild(param2);
+
+			var embed = document.createElement('embed');
+			embed.setAttribute('src', 'audiofeed.swf');
+			embed.setAttribute('name', 'audioFeed');
+			embed.setAttribute('swliveconnect', 'true');
+			embed.setAttribute('type', 'application/x-shockwave-flash');
+		
+			this.flashObject.appendChild(embed);
+		
+			var div = document.createElement('div');
+			div.id = 'audioFlashPromptNotice';
+			div.style.position = 'absolute';
+			div.style.top = "-220px";
+			div.style.left = ((document.width - 320) / 2).toString() + "px";
+			div.style.border = '3px solid black';
+			div.style['background-color'] = "white";
+			div.style['border-top'] = "none";
+			div.style['border-radius'] = "0px 0px 10px 10px";
+			div.style['padding-bottom'] = "10px";
+			div.style['-webkit-transition'] = "top 1s ease-out";
+			div.appendChild(this.flashObject);
+			
+			var self = this;
+			window["flAudioLoaded"] = function() {
+				isAudioLoaded = true;
+				for (var i = 0; i < createAudioInputSourceNodeQueue.length; i++) createAudioInputSourceNodeQueue[i].apply(self);
+			};
+
+			document.body.appendChild(div);
+		
+			setTimeout(function() {div.style.top = "0px"}, 0);
+			
+			window["flAudioPermissionSelected"] = function() {
+				div.style.top = "-220px";
+			};
+		},
+		flashObject: null
+	};
+})();
 
 if (!AudioBuffer) {
 	var AudioBuffer = function(buffers) {
@@ -53,60 +126,12 @@ if (!AudioProcessingEvent) {
 }
 
 if (!AudioContext) {
-	// callback is a hack, because the W3C spec doesn't account for AudioContext taking time to initialise
-	var AudioContext = function(callback) {
-		this.obj = document.createElement('object');
-		this.obj.id = "audioFeed";
-		this.obj.width = 300;
-		this.obj.height = 200;
-		this.obj.style.display = 'block';
-		this.obj.style.left = '10px';
-
-		var param1 = document.createElement('param');
-		param1.setAttribute('name', 'movie');
-		param1.setAttribute('value', 'audiofeed.swf');
-		this.obj.appendChild(param1);
-
-		var param2 = document.createElement('param');
-		param2.setAttribute('name', 'allowScriptAccess');
-		param2.setAttribute('value', '*');
-		this.obj.appendChild(param2);
-
-		var embed = document.createElement('embed');
-		embed.setAttribute('src', 'audiofeed.swf');
-		embed.setAttribute('name', 'audioFeed');
-		embed.setAttribute('swliveconnect', 'true');
-		embed.setAttribute('type', 'application/x-shockwave-flash');
-		
-		this.obj.appendChild(embed);
-		
-		var div = document.createElement('div');
-		div.id = 'audioFlashPromptNotice';
-		div.style.position = 'absolute';
-		div.style.top = "-220px";
-		div.style.left = ((document.width - 320) / 2).toString() + "px";
-		div.style.border = '3px solid black';
-		div.style['background-color'] = "white";
-		div.style['border-top'] = "none";
-		div.style['border-radius'] = "0px 0px 10px 10px";
-		div.style['padding-bottom'] = "10px";
-		div.style['-webkit-transition'] = "top 1s ease-out";
-		div.appendChild(this.obj);
-
-		document.body.appendChild(div);
-		
-		setTimeout(function() {div.style.top = "0px"}, 0);
-		
-		if (callback) window["flAudioLoaded"] = callback;
-		window["flAudioPermissionSelected"] = function() {
-			div.style.top = "-220px";
-		};
-	}
+	var AudioContext = function() {};
 	AudioContext.prototype = {
 		inputNodes: {},
 		obj: null,
 		createAudioInputSourceNode: function(id) {
-			
+			window['aud.i-o'].createFlashObject();
 			if (typeof(id) != "number") id = -1;
 			
 			if (!this.inputNodes[id]) {
@@ -117,18 +142,17 @@ if (!AudioContext) {
 			var callbackName = "flAudioCallback" + (id >= 0 ? id.toString() : "");
 			var self = this;
 			window[callbackName] = function(data) {
-				
 				var buffer = Float32Array ? new AudioBuffer([new Float32Array(data)]) : new AudioBuffer([data]);
 				var event = new AudioProcessingEvent(self.inputNodes[id], new Date().valueOf(), buffer, null);
 				if (self.inputNodes[id].onaudioprocess) self.inputNodes[id].onaudioprocess(event);
 			}
 			
-			this.obj.getFeed(callbackName, id);
+			window['aud.i-o'].createAudioInputSourceNode(callbackName, id);
 			
 			return this.inputNodes[id];
 		},
 		get getAudioInputSources() {
-			return this.obj.getFeeds();
+			return window['aud.i-o'].flashObject.getFeeds();
 		}
 	};
 }

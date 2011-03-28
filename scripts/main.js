@@ -37,21 +37,21 @@ require.ready(function(){
 			codec.compress(samples, 4);
 		}
 
-		var ac = new AudioContext(function() {
-			var node = ac.createAudioInputSourceNode();
-			var seeds = [0];
-			node.onaudioprocess = function(event) {
-				// Draw waveform
-				var buf = event.inputBuffer.getChannelData(0);
-				while (buf.length > 0) {
-					var sub = buf.slice(0, 512);
-					buf = buf.slice(512);
-					drawAllSamples(sub, seeds);
-					// Seed the next buffer frame with the last N values of the current buffer
-					// where N is the order of prediction in the codec.
-					seeds = sub.slice(sub.length - 1);
-				}
-			};
-		});
+		var ac = new AudioContext();
+
+		var node = ac.createAudioInputSourceNode();
+		var seeds = [0];
+		node.onaudioprocess = function(event) {
+			// Draw waveform
+			var buf = event.inputBuffer.getChannelData(0);
+			while (buf.length > 0) {
+				var sub = buf.slice(0, 512);
+				buf = buf.slice(512);
+				drawAllSamples(sub, seeds);
+				// Seed the next buffer frame with the last N values of the current buffer
+				// where N is the order of prediction in the codec.
+				seeds = sub.slice(sub.length - 1);
+			}
+		};
 	});
 });
