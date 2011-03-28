@@ -28,7 +28,7 @@ define(function() {
 	DataFrame.prototype.constructor = DataFrame;
 	
 	// Order of prediction - between 0 and 3;
-	// Orders 2 and 3 not working yet
+	// Orders above 1 not appropriate for non-int sources?
 	var ORDER = 1;
 	var seeds = [];
 
