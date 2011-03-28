@@ -35,7 +35,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 				var mic:Microphone = Microphone.getMicrophone(micIndex);
 				mic.setLoopBack(false);
 				mic.rate = 44;
-				mic.gain = 40;
+				mic.gain = 60;
 				mic.addEventListener(StatusEvent.STATUS, function(status:StatusEvent):void {
 					ExternalInterface.call("flAudioPermissionSelected");
 				});
