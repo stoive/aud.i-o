@@ -5,5 +5,3 @@ Currently in an embryonic stage - I don't have a browser with working a Web Audi
 In short, don't use this just yet. :p
 
 Alongside the main focus of development - aud.i-o.js - is an example page which renders waveforms, and performs predictive/quantizing/lossy audio compression/decompression. This is just a demo, and might eventually be split off into another project, if browser audio APIs don't end up providing an audio compression output node for sending data over the network.
-
-I'm lazy, and haven't worked on this for ages.
